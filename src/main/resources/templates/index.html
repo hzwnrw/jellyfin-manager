@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Jellyfin User Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding-top: 50px; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .status-badge { font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Jellyfin User Expiry Manager</h2>
+        <span class="text-muted" th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy')}"></span>
+    </div>
+
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+        <tr>
+            <th>User</th>
+            <th>Status</th>
+            <th>Manual Action</th>
+            <th>Scheduled Expiry</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td>
+                <strong th:text="${user.name}"></strong>
+                <!-- <div class="text-muted small" th:text="${user.id}"></div> -->
+            </td>
+
+            <td>
+                <span th:if="${user.policy.isDisabled}" class="badge bg-danger status-badge">Disabled</span>
+                <span th:unless="${user.policy.isDisabled}" class="badge bg-success status-badge">Active</span>
+            </td>
+
+            <td>
+                <form th:action="@{/toggle}" method="post">
+                    <input type="hidden" name="userId" th:value="${user.id}">
+                    <input type="hidden" name="disable" th:value="${!user.policy.isDisabled}">
+
+                    <button type="submit"
+                            th:class="${user.policy.isDisabled ? 'btn btn-sm btn-outline-success' : 'btn btn-sm btn-outline-danger'}"
+                            th:text="${user.policy.isDisabled ? 'Enable Now' : 'Disable Now'}">
+                    </button>
+                </form>
+            </td>
+
+            <td>
+                <div class="d-flex flex-column gap-1">
+                    <div th:if="${tracked.containsKey(user.id)}">
+                            <span class="badge bg-info text-dark">
+                                Auto-lock: <span th:text="${tracked.get(user.id).expiryDate}"></span>
+                            </span>
+                    </div>
+
+                    <form th:action="@{/set-expiry}" method="post" class="d-flex gap-2">
+                        <input type="hidden" name="userId" th:value="${user.id}">
+                        <input type="hidden" name="username" th:value="${user.name}">
+                        <input type="datetime-local" name="date"
+                               class="form-control form-control-sm w-auto"
+                               th:value="${tracked.containsKey(user.id) ? tracked.get(user.id).expiryDate : ''}"
+                               required>
+                        <button type="submit" class="btn btn-sm btn-primary">Set</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="mt-4 p-3 bg-light rounded">
+        <small class="text-muted">
+            <strong>Note:</strong> "Disable Now" updates Jellyfin immediately.
+            "Set Expiry" saves a date in the local database; the system will automatically disable the user at midnight on that date.
+        </small>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
