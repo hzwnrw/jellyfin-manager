@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  jellyfin-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - jellyfin.url=http://jellyfin:8096
+      - jellyfin.api-key=${JELLYFIN_API_KEY}
+      - spring.datasource.url=jdbc:postgresql://postgres:5432/jellyfin_manager
+      - spring.datasource.username=${DB_USER:-jellyfin}
+      - spring.datasource.password=${DB_PASSWORD:-jellyfin123}
+      - spring.jpa.hibernate.ddl-auto=update
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - jellyfin-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: jellyfin-manager-db
+    environment:
+      - POSTGRES_DB=jellyfin_manager
+      - POSTGRES_USER=${DB_USER:-jellyfin}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-jellyfin123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jellyfin-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-jellyfin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  jellyfin-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
