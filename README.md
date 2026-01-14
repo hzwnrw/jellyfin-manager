@@ -60,3 +60,17 @@ The application will be available at `http://localhost:8080`
 ```java
 @Scheduled(cron = "0 0 0 * * *") // Run daily at midnight
 ```
+
+## Docker Installation
+
+You can run Jellyfin User Manager using Docker.
+
+1. Create a .env file to store your Jellyfin API key:
+```env
+JELLYFIN_API_KEY=your-jellyfin-api-key
+```
+3. Use docker-compose.yml, don't forget to change url
+4. Start the stack
+```bash
+docker compose up -d
+```
