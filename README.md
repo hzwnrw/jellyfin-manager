@@ -55,7 +55,7 @@ The application will be available at `http://localhost:8080`
 
 ## Scheduler Configuration
 
-Currently set to run every 5 seconds for testing. For production, change in `ExpirationTask.java`:
+`ExpirationTask.java`:
 
 ```java
 @Scheduled(cron = "0 0 0 * * *") // Run daily at midnight
