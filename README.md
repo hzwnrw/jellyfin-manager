@@ -26,26 +26,6 @@ jellyfin.url=http://your-jellyfin-server:8096
 jellyfin.api-key=your-jellyfin-api-key
 ```
 
-## Building
-
-```bash
-mvn clean package
-```
-
-## Running
-
-```bash
-mvn spring-boot:run
-```
-
-Or using the built JAR:
-
-```bash
-java -jar target/jellyfin-manager-1.0.0.jar
-```
-
-The application will be available at `http://localhost:8080`
-
 ## Usage
 
 1. **View Users**: Navigate to the home page to see all Jellyfin users
