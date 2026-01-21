@@ -67,7 +67,7 @@
           if (response.ok) {
               const data = await response.json();
               // Store JWT in cookie for server-side authentication
-              document.cookie = `jwt_token=${data.token}; path=/; max-age=3600`;
+              document.cookie = `jwt_token=${data.token}; path=/; max-age=86400`;
               // Redirect to homepage
               window.location.href = '/';
           } else {
