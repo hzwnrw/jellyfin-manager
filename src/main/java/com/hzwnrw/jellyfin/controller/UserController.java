@@ -30,6 +30,11 @@ public class UserController {
         return "index";
     }
 
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login"; // This matches src/main/resources/templates/login.html
+    }
+
     @PostMapping("/set-expiry")
     public String setExpiry(@RequestParam String userId, @RequestParam String username, @RequestParam String date) {
         UserExpiration exp = new UserExpiration();
