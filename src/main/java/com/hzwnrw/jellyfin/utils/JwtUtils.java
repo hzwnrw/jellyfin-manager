@@ -1,10 +1,12 @@
 package com.hzwnrw.jellyfin.utils;
 
+import com.hzwnrw.jellyfin.service.TokenBlacklistService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,14 +23,18 @@ public class JwtUtils {
 
     private static SecretKey secretKey = null;
     private final long expirationTime;
+    private final TokenBlacklistService tokenBlacklistService;
 
     // Inject from application.properties or environment variables
+    @Autowired
     public JwtUtils(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration:86400000}") long expirationTime) {
+            @Value("${jwt.expiration:86400000}") long expirationTime,
+            TokenBlacklistService tokenBlacklistService) {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.expirationTime = expirationTime;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     public String generateToken(String username) {
@@ -40,9 +46,16 @@ public class JwtUtils {
                 .compact();
     }
 
-    public static boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             parseClaims(token);
+            log.info("Validating token: {}, length: {}", token.substring(0, 20) + "...", token.length());
+            // Check if token is blacklisted
+            if (tokenBlacklistService.isTokenBlacklisted(token)) {
+                log.warn("JWT token is blacklisted, rejecting: {}", token.substring(0, 20) + "...");
+                return false;
+            }
+            log.info("Token validation successful, not blacklisted");
             return true;
         } catch (ExpiredJwtException e) {
             log.error("JWT token is expired: {}", e.getMessage());
@@ -62,13 +75,11 @@ public class JwtUtils {
         Claims claims = parseClaims(token);
         String username = claims.getSubject();
 
-        // In production, you'd typically load user details from a UserDetailsService here
-        // to ensure the account isn't locked/disabled even if the token is valid.
         User principal = new User(username, "", new ArrayList<>());
         return new UsernamePasswordAuthenticationToken(principal, token, new ArrayList<>());
     }
 
-    private static Claims parseClaims(String token) {
+    private Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()

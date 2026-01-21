@@ -2,8 +2,10 @@ package com.hzwnrw.jellyfin.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 
+@Embeddable
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserPolicy {
