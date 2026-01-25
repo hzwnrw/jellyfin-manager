@@ -9,13 +9,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -117,7 +114,7 @@ public class UserController {
         log.warn("Extracted token from request: {}, length: {}", token != null ? token.substring(0, 20) + "..." : "null", token != null ? token.length() : 0);
 
         // Blacklist the token if present
-        if (token != null && !token.isEmpty()) {
+        if (token != null) {
             try {
                 // Blacklist for 1 day (86400 seconds) - match JWT expiration
                 tokenBlacklistService.blacklistToken(token, 86400L);

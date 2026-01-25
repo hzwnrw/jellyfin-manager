@@ -6,9 +6,16 @@ services:
     ports:
       - "9090:9090"
     environment:
-      - jellyfin.url=http://jellyfin:8096
+      - jellyfin.url=${JELLYFIN_URL}
       - jellyfin.api-key=${JELLYFIN_API_KEY}
       - spring.jpa.hibernate.ddl-auto=update
+      - spring.datasource.url=${JELLYFIN_DB_URL} # jdbc:mariadb://192.168.100.3:3306/jellyfin_manager_db
+      - spring.datasource.username=${JELLYFIN_DB_USERNAME}
+      - spring.datasource.password=${JELLYFIN_DB_PASSWORD}
+      - jwt.secret=${JWT_SECRET} # openssl rand -base64 64
+      - spring.data.redis.host=${REDIS_HOST}
+      - spring.data.redis.port=${REDIS_PORT}
+      - spring.redis.password=${REDIS_PASSWORD}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9090/"]
       interval: 30s
