@@ -92,7 +92,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Disabled for local development/APIs
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/api/auth/**", "/logout", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/login", "/api/auth/**", "/logout", "/css/**", "/js/**", "/static/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout

@@ -3,11 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <title>Jellyfin User Manager</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; padding-top: 50px; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .status-badge { font-size: 0.8rem; }
+      :root {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --text-primary: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --border-color: #444;
+        --input-bg: #3d3d3d;
+        --table-hover: #3d3d3d;
+      }
+
+      body.light-mode {
+        --bg-primary: #f8f9fa;
+        --bg-secondary: #ffffff;
+        --text-primary: #212529;
+        --text-muted: #6c757d;
+        --border-color: #dee2e6;
+        --input-bg: #ffffff;
+        --table-hover: #f0f0f0;
+      }
+
+      body { background-color: var(--bg-primary); padding-top: 50px; color: var(--text-primary); transition: background-color 0.3s, color 0.3s; }
+      .container { background: var(--bg-secondary); padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
+      .container h2 { color: var(--text-primary); }
+      .status-badge { font-size: 0.8rem; }
+      .text-muted { color: var(--text-muted) !important; }
+      .table { color: var(--text-primary); border-color: var(--border-color); background-color: var(--bg-secondary); }
+      .table thead.table-dark { background-color: var(--input-bg) !important; color: var(--text-primary) !important; border-bottom: 1px solid var(--border-color); }
+      .table thead.table-dark th { color: var(--text-primary) !important; background-color: var(--input-bg) !important; }
+      .table tbody { background-color: var(--bg-secondary); }
+      .table tbody tr { border-color: var(--border-color); background-color: var(--bg-secondary); }
+      .table tbody tr:hover { background-color: var(--table-hover); }
+      .table td { color: var(--text-primary); background-color: var(--bg-secondary); }
+      .form-control { background-color: var(--input-bg); color: var(--text-primary); border-color: var(--border-color); }
+      .form-control:focus { background-color: var(--input-bg); color: var(--text-primary); border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); }
+      .btn-outline-secondary { color: var(--text-primary); border-color: var(--border-color); }
+      .btn-outline-secondary:hover { background-color: var(--table-hover); border-color: var(--text-primary); }
+      .btn-outline-danger { color: #ff6b6b; border-color: #ff6b6b; }
+      .btn-outline-danger:hover { background-color: #ff6b6b; color: var(--bg-primary); }
+      .btn-outline-success { color: #51cf66; border-color: #51cf66; }
+      .btn-outline-success:hover { background-color: #51cf66; color: var(--bg-primary); }
+      .btn-primary { background-color: #007bff; border: none; }
+      .btn-primary:hover { background-color: #0056b3; }
+      .bg-light { background-color: var(--table-hover) !important; }
+      .badge { font-size: 0.75rem; }
+      .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+      .theme-toggle:hover { background: var(--border-color); }
+      .toggle-icon { display: inline-block; width: 20px; height: 20px; }
     </style>
 </head>
 <body>
@@ -17,6 +62,19 @@
         <h2>Jellyfin User Expiry Manager</h2>
         <div class="d-flex align-items-center gap-3">
             <span class="text-muted" th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy')}"></span>
+            <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+            </button>
             <form id="logoutForm" th:action="@{/logout}" method="post" style="margin: 0;">
                 <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
             </form>
@@ -89,6 +147,29 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    const theme = localStorage.getItem('theme') || 'dark';
+    
+    const sunIcon = `<svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+    const moonIcon = `<svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+    
+    if (theme === 'light') {
+      body.classList.add('light-mode');
+      themeToggle.innerHTML = sunIcon;
+    } else {
+      themeToggle.innerHTML = moonIcon;
+    }
+
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('light-mode');
+      const newTheme = body.classList.contains('light-mode') ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      themeToggle.innerHTML = newTheme === 'light' ? sunIcon : moonIcon;
+    });
+
+    // Logout
     document.getElementById('logoutForm').addEventListener('submit', function(e) {
         console.log('Logout form submitted!');
         console.log('Form action:', this.action);
