@@ -10,7 +10,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>jellyfin-manager</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <properties>
         <java.version>21</java.version>
