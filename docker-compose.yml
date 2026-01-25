@@ -15,7 +15,7 @@ services:
       - jwt.secret=${JWT_SECRET} # openssl rand -base64 64
       - spring.data.redis.host=${REDIS_HOST}
       - spring.data.redis.port=${REDIS_PORT}
-      - spring.redis.password=${REDIS_PASSWORD}
+      - spring.data.redis.password=${REDIS_PASSWORD}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9090/"]
       interval: 30s
