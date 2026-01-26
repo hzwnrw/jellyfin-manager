@@ -2,180 +2,478 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Jellyfin User Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Jellyfin Manager</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       :root {
-        --bg-primary: #1a1a1a;
-        --bg-secondary: #2d2d2d;
-        --text-primary: #e0e0e0;
-        --text-muted: #a0a0a0;
-        --border-color: #444;
-        --input-bg: #3d3d3d;
-        --table-hover: #3d3d3d;
+        --bg-primary: rgb(9, 9, 11);
+        --bg-secondary: rgb(24, 24, 27);
+        --bg-tertiary: rgb(39, 39, 42);
+        --text-primary: rgb(250, 250, 250);
+        --text-muted: rgb(161, 161, 170);
+        --border-color: rgb(63, 63, 70);
+        --accent: rgb(59, 130, 246);
       }
 
       body.light-mode {
-        --bg-primary: #f8f9fa;
-        --bg-secondary: #ffffff;
-        --text-primary: #212529;
-        --text-muted: #6c757d;
-        --border-color: #dee2e6;
-        --input-bg: #ffffff;
-        --table-hover: #f0f0f0;
+        --bg-primary: rgb(255, 255, 255);
+        --bg-secondary: rgb(250, 250, 250);
+        --bg-tertiary: rgb(244, 244, 245);
+        --text-primary: rgb(9, 9, 11);
+        --text-muted: rgb(113, 113, 122);
+        --border-color: rgb(228, 228, 231);
+        --accent: rgb(59, 130, 246);
       }
 
-      body { background-color: var(--bg-primary); padding-top: 50px; color: var(--text-primary); transition: background-color 0.3s, color 0.3s; }
-      .container { background: var(--bg-secondary); padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
-      .container h2 { color: var(--text-primary); }
-      .status-badge { font-size: 0.8rem; }
-      .text-muted { color: var(--text-muted) !important; }
-      .table { color: var(--text-primary); border-color: var(--border-color); background-color: var(--bg-secondary); }
-      .table thead.table-dark { background-color: var(--input-bg) !important; color: var(--text-primary) !important; border-bottom: 1px solid var(--border-color); }
-      .table thead.table-dark th { color: var(--text-primary) !important; background-color: var(--input-bg) !important; }
-      .table tbody { background-color: var(--bg-secondary); }
-      .table tbody tr { border-color: var(--border-color); background-color: var(--bg-secondary); }
-      .table tbody tr:hover { background-color: var(--table-hover); }
-      .table td { color: var(--text-primary); background-color: var(--bg-secondary); }
-      .form-control { background-color: var(--input-bg); color: var(--text-primary); border-color: var(--border-color); }
-      .form-control:focus { background-color: var(--input-bg); color: var(--text-primary); border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); }
-      .btn-outline-secondary { color: var(--text-primary); border-color: var(--border-color); }
-      .btn-outline-secondary:hover { background-color: var(--table-hover); border-color: var(--text-primary); }
-      .btn-outline-danger { color: #ff6b6b; border-color: #ff6b6b; }
-      .btn-outline-danger:hover { background-color: #ff6b6b; color: var(--bg-primary); }
-      .btn-outline-success { color: #51cf66; border-color: #51cf66; }
-      .btn-outline-success:hover { background-color: #51cf66; color: var(--bg-primary); }
-      .btn-primary { background-color: #007bff; border: none; }
-      .btn-primary:hover { background-color: #0056b3; }
-      .bg-light { background-color: var(--table-hover) !important; }
-      .badge { font-size: 0.75rem; }
-      .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 5px; cursor: pointer; }
-      .theme-toggle:hover { background: var(--border-color); }
-      .toggle-icon { display: inline-block; width: 20px; height: 20px; }
+      * {
+        @apply transition-colors duration-200;
+      }
+
+      body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+      }
+
+      .sidebar {
+        background-color: var(--bg-secondary);
+        border-right: 1px solid var(--border-color);
+      }
+
+      .main-content {
+        background-color: var(--bg-primary);
+      }
+
+      .card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+      }
+
+      .input-field {
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+      }
+
+      .input-field:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .btn-primary {
+        background-color: var(--accent);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .btn-primary:hover {
+        background-color: rgb(37, 99, 235);
+      }
+
+      .btn-secondary {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .btn-secondary:hover {
+        background-color: var(--border-color);
+      }
+
+      .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .btn-danger {
+        background-color: rgb(239, 68, 68);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .btn-danger:hover {
+        background-color: rgb(220, 38, 38);
+      }
+
+      .btn-success {
+        background-color: rgb(34, 197, 94);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .btn-success:hover {
+        background-color: rgb(22, 163, 74);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .badge-success {
+        background-color: rgb(34, 197, 94);
+        color: white;
+      }
+
+      .badge-danger {
+        background-color: rgb(239, 68, 68);
+        color: white;
+      }
+
+      .badge-info {
+        background-color: var(--accent);
+        color: white;
+      }
+
+      .table {
+        color: var(--text-primary);
+        border-collapse: collapse;
+      }
+
+      .table th {
+        background-color: var(--bg-tertiary);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+
+      .table td {
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem;
+      }
+
+      .table tbody tr:hover {
+        background-color: var(--bg-tertiary);
+      }
+
+      .nav-link {
+        color: var(--text-muted);
+        padding: 0.75rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+      }
+
+      .nav-link:hover {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+      }
+
+      .nav-link.active {
+        background-color: var(--accent);
+        color: white;
+      }
+
+      .theme-toggle {
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .theme-toggle:hover {
+        background-color: var(--border-color);
+      }
+
+      .icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        display: inline-block;
+        stroke-width: 2;
+      }
+
+      .info-box {
+        background-color: var(--bg-tertiary);
+        border-left: 4px solid var(--accent);
+        padding: 1rem;
+        border-radius: 0.375rem;
+        margin-bottom: 1.5rem;
+      }
     </style>
 </head>
-<body>
+<body class="dark-mode">
 
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Jellyfin User Expiry Manager</h2>
-        <div class="d-flex align-items-center gap-3">
-            <span class="text-muted" th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy')}"></span>
-            <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-              </svg>
-            </button>
-            <form id="logoutForm" th:action="@{/logout}" method="post" style="margin: 0;">
-                <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
-            </form>
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div class="sidebar w-64 flex flex-col">
+      <!-- Logo -->
+      <div class="p-6 border-b" style="border-color: var(--border-color);">
+        <h1 class="text-xl font-bold">Jellyfin Manager</h1>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 p-4 overflow-y-auto">
+        <a href="/" class="nav-link active">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Dashboard
+        </a>
+        <a href="/profile" class="nav-link">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Profile
+        </a>
+      </nav>
+
+      <!-- Footer -->
+      <div class="p-4 border-t" style="border-color: var(--border-color);">
+        <div class="flex items-center gap-2 mb-4">
+          <button class="theme-toggle w-full" id="themeToggle" title="Toggle dark/light mode">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            Theme
+          </button>
         </div>
+        <form id="logoutForm" th:action="@{/logout}" method="post">
+          <button type="submit" class="btn-secondary w-full py-2 text-sm">Logout</button>
+        </form>
+      </div>
     </div>
 
-    <table class="table table-hover align-middle">
-        <thead class="table-dark">
-        <tr>
-            <th>User</th>
-            <th>Status</th>
-            <th>Manual Action</th>
-            <th>Scheduled Expiry</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="user : ${users}">
-            <td>
-                <strong th:text="${user.name}"></strong>
-                <!-- <div class="text-muted small" th:text="${user.id}"></div> -->
-            </td>
+    <!-- Main Content -->
+    <div class="main-content flex-1 flex flex-col overflow-hidden">
+      <!-- Header -->
+      <div class="border-b" style="border-color: var(--border-color); background-color: var(--bg-secondary);">
+        <div class="px-8 py-4 flex items-center justify-between">
+          <h2 class="text-2xl font-semibold">Dashboard</h2>
+          <div class="text-sm" style="color: var(--text-muted);" th:text="${currentDate}"></div>
+        </div>
+      </div>
 
-            <td>
-                <span th:if="${user.policy.isDisabled}" class="badge bg-danger status-badge">Disabled</span>
-                <span th:unless="${user.policy.isDisabled}" class="badge bg-success status-badge">Active</span>
-            </td>
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-8">
+        <!-- Info Box -->
+        <div class="info-box">
+          <strong>Pro Tip:</strong> All times are shown in <span th:text="${timezone}"></span> timezone (UTC). Click "Set Expiry" to schedule automatic account disabling. Changes take effect at midnight on the specified date.
+        </div>
 
-            <td>
-                <form th:action="@{/toggle}" method="post">
-                    <input type="hidden" name="userId" th:value="${user.id}">
-                    <input type="hidden" name="disable" th:value="${!user.policy.isDisabled}">
-
-                    <button type="submit"
-                            th:class="${user.policy.isDisabled ? 'btn btn-sm btn-outline-success' : 'btn btn-sm btn-outline-danger'}"
-                            th:text="${user.policy.isDisabled ? 'Enable Now' : 'Disable Now'}">
-                    </button>
-                </form>
-            </td>
-
-            <td>
-                <div class="d-flex flex-column gap-1">
-                    <div th:if="${tracked.containsKey(user.id)}">
-                            <span class="badge bg-info text-dark">
-                                Auto-lock: <span th:text="${tracked.get(user.id).expiryDate}"></span>
-                            </span>
-                    </div>
-
-                    <form th:action="@{/set-expiry}" method="post" class="d-flex gap-2">
-                        <input type="hidden" name="userId" th:value="${user.id}">
-                        <input type="hidden" name="username" th:value="${user.name}">
-                        <input type="datetime-local" name="date"
-                               class="form-control form-control-sm w-auto"
-                               th:value="${tracked.containsKey(user.id) ? tracked.get(user.id).expiryDate : ''}"
-                               required>
-                        <button type="submit" class="btn btn-sm btn-primary">Set</button>
-                    </form>
+        <!-- Users Table -->
+        <div class="card">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold">Users</h3>
+              <!-- Pagination & Sorting Controls -->
+              <div class="flex gap-4 items-center">
+                <!-- Sort Control -->
+                <div class="flex items-center gap-2">
+                  <label for="sortBy" class="text-sm" style="color: var(--text-muted);">Sort by:</label>
+                  <select id="sortBy" class="input-field px-2 py-1 rounded text-sm" onchange="updateSort()">
+                    <option value="name" th:selected="${sortBy == 'name'}">Name</option>
+                    <option value="id" th:selected="${sortBy == 'id'}">ID</option>
+                  </select>
                 </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+                
+                <!-- Direction Control -->
+                <div class="flex items-center gap-2">
+                  <select id="direction" class="input-field px-2 py-1 rounded text-sm" onchange="updateSort()">
+                    <option value="ASC" th:selected="${direction == 'ASC'}">Ascending</option>
+                    <option value="DESC" th:selected="${direction == 'DESC'}">Descending</option>
+                  </select>
+                </div>
 
-    <div class="mt-4 p-3 bg-light rounded">
-        <small class="text-muted">
-            <strong>Note:</strong> "Disable Now" updates Jellyfin immediately.
-            "Set Expiry" saves a date in the local database; the system will automatically disable the user at midnight on that date.
-        </small>
+                <!-- Page Size Control -->
+                <div class="flex items-center gap-2">
+                  <label for="pageSize" class="text-sm" style="color: var(--text-muted);">Per page:</label>
+                  <select id="pageSize" class="input-field px-2 py-1 rounded text-sm" onchange="updatePageSize()">
+                    <option value="5" th:selected="${pageSize == 5}">5</option>
+                    <option value="10" th:selected="${pageSize == 10}">10</option>
+                    <option value="20" th:selected="${pageSize == 20}">20</option>
+                    <option value="50" th:selected="${pageSize == 50}">50</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="table w-full text-sm">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                    <th>Scheduled Expiry</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="user : ${users}">
+                    <td>
+                      <span class="font-medium" th:text="${user.name}"></span>
+                    </td>
+                    <td>
+                      <span th:if="${user.policy.isDisabled}" class="badge badge-danger">Disabled</span>
+                      <span th:unless="${user.policy.isDisabled}" class="badge badge-success">Active</span>
+                    </td>
+                    <td>
+                      <form th:action="@{/toggle}" method="post" class="inline">
+                        <input type="hidden" name="userId" th:value="${user.id}">
+                        <input type="hidden" name="disable" th:value="${!user.policy.isDisabled}">
+                        <button type="submit"
+                                th:class="${user.policy.isDisabled ? 'btn-success btn-sm' : 'btn-danger btn-sm'}"
+                                th:text="${user.policy.isDisabled ? 'Enable' : 'Disable'}">
+                        </button>
+                      </form>
+                    </td>
+                    <td>
+                      <div class="flex flex-col gap-2">
+                        <div th:if="${tracked.containsKey(user.id)}">
+                          <span class="badge badge-info text-xs">
+                            <span th:text="${tracked.get(user.id).expiryDateFormatted}"></span>
+                          </span>
+                        </div>
+                        <form th:action="@{/set-expiry}" method="post" class="flex gap-2 items-center">
+                          <input type="hidden" name="userId" th:value="${user.id}">
+                          <input type="hidden" name="username" th:value="${user.name}">
+                          <input type="datetime-local" name="date"
+                                 class="input-field px-2 py-1 rounded text-xs"
+                                 required>
+                          <button type="submit" class="btn-primary btn-sm">Set</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="flex justify-between items-center mt-6 pt-4" style="border-top: 1px solid var(--border-color);">
+              <div class="text-sm" style="color: var(--text-muted);">
+                Showing <span th:text="${pageSize}"></span> of <span th:text="${totalElements}"></span> users
+                (Page <span th:text="${currentPage + 1}"></span> of <span th:text="${totalPages}"></span>)
+              </div>
+              <div class="flex gap-2">
+                <!-- Previous Button -->
+                <a th:if="${hasPrevious}" 
+                   th:href="@{/(page=${currentPage - 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction})}"
+                   class="btn-secondary btn-sm">
+                  ← Previous
+                </a>
+                <button th:unless="${hasPrevious}" class="btn-secondary btn-sm opacity-50 cursor-not-allowed" disabled>
+                  ← Previous
+                </button>
+
+                <!-- Page Numbers -->
+                <div class="flex gap-1">
+                  <th:block th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
+                    <a th:if="${pageNum != currentPage}"
+                       th:href="@{/(page=${pageNum}, size=${pageSize}, sortBy=${sortBy}, direction=${direction})}"
+                       class="btn-secondary btn-sm px-2 py-1"
+                       th:text="${pageNum + 1}">
+                    </a>
+                    <button th:unless="${pageNum != currentPage}"
+                            class="btn-primary btn-sm px-2 py-1"
+                            th:text="${pageNum + 1}"
+                            disabled>
+                    </button>
+                  </th:block>
+                </div>
+
+                <!-- Next Button -->
+                <a th:if="${hasNext}"
+                   th:href="@{/(page=${currentPage + 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction})}"
+                   class="btn-secondary btn-sm">
+                  Next →
+                </a>
+                <button th:unless="${hasNext}" class="btn-secondary btn-sm opacity-50 cursor-not-allowed" disabled>
+                  Next →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+  <script>
     // Theme Toggle
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
-    const theme = localStorage.getItem('theme') || 'dark';
-    
-    const sunIcon = `<svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-    const moonIcon = `<svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-    
-    if (theme === 'light') {
-      body.classList.add('light-mode');
-      themeToggle.innerHTML = sunIcon;
-    } else {
-      themeToggle.innerHTML = moonIcon;
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
+      } else {
+        body.classList.remove('light-mode');
+        body.classList.add('dark-mode');
+      }
+      localStorage.setItem('theme', theme);
     }
 
+    applyTheme(savedTheme);
+
     themeToggle.addEventListener('click', () => {
-      body.classList.toggle('light-mode');
-      const newTheme = body.classList.contains('light-mode') ? 'light' : 'dark';
-      localStorage.setItem('theme', newTheme);
-      themeToggle.innerHTML = newTheme === 'light' ? sunIcon : moonIcon;
+      const currentTheme = body.classList.contains('light-mode') ? 'light' : 'dark';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(newTheme);
     });
+
+    // Pagination and Sorting Functions
+    function updateSort() {
+      const sortBy = document.getElementById('sortBy').value;
+      const direction = document.getElementById('direction').value;
+      const pageSize = document.getElementById('pageSize').value;
+      window.location.href = `/?page=0&size=${pageSize}&sortBy=${sortBy}&direction=${direction}`;
+    }
+
+    function updatePageSize() {
+      const pageSize = document.getElementById('pageSize').value;
+      const sortBy = document.getElementById('sortBy').value;
+      const direction = document.getElementById('direction').value;
+      window.location.href = `/?page=0&size=${pageSize}&sortBy=${sortBy}&direction=${direction}`;
+    }
 
     // Logout
     document.getElementById('logoutForm').addEventListener('submit', function(e) {
-        console.log('Logout form submitted!');
-        console.log('Form action:', this.action);
-        console.log('Form method:', this.method);
-        // Form will submit naturally
+      console.log('Logging out...');
     });
-</script>
+  </script>
 </body>
 </html>
