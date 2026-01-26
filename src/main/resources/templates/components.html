@@ -1,0 +1,130 @@
+<!-- Button Components -->
+<button th:fragment="btn(text, type='primary', size='md', disabled=false)" 
+        th:class="${'btn-' + type + ' py-' + (size == 'sm' ? '1' : size == 'lg' ? '3' : '2') + ' px-' + (size == 'sm' ? '2' : size == 'lg' ? '4' : '3') + ' rounded font-medium text-sm'}"
+        th:disabled="${disabled}">
+  [[${text}]]
+</button>
+
+<!-- Badge Component -->
+<span th:fragment="badge(text, type='default')" 
+      th:class="${'badge badge-' + type}">
+  [[${text}]]
+</span>
+
+<!-- Card Component -->
+<div th:fragment="card(title, content)" class="card p-6">
+  <div th:if="${title}" class="card-header pb-4 mb-4 border-b" style="border-color: var(--border-color);">
+    <h3 class="font-semibold text-lg" th:text="${title}"></h3>
+  </div>
+  <div th:replace="${content}"></div>
+</div>
+
+<!-- Input Field Component -->
+<div th:fragment="input(label, name, type='text', placeholder='', value='', required=false)">
+  <label th:for="${name}" class="block text-sm font-medium mb-2" th:text="${label}"></label>
+  <input th:id="${name}"
+         th:name="${name}"
+         th:type="${type}"
+         th:placeholder="${placeholder}"
+         th:value="${value}"
+         th:required="${required}"
+         class="input-field w-full px-3 py-2 rounded focus:ring-2 focus:ring-offset-2"
+         style="focus-ring-color: var(--accent);">
+</div>
+
+<!-- Select Field Component -->
+<div th:fragment="select(label, name, options, selected='', required=false)">
+  <label th:for="${name}" class="block text-sm font-medium mb-2" th:text="${label}"></label>
+  <select th:id="${name}"
+          th:name="${name}"
+          th:required="${required}"
+          class="input-field w-full px-3 py-2 rounded focus:ring-2 focus:ring-offset-2">
+    <option value="">Select an option</option>
+    <option th:each="option : ${options}" 
+            th:value="${option}" 
+            th:text="${option}"
+            th:selected="${option == selected}"></option>
+  </select>
+</div>
+
+<!-- Form Group Component -->
+<div th:fragment="formGroup(label, name, type='text', placeholder='', value='', required=false, error='')">
+  <div class="mb-4">
+    <label th:for="${name}" class="block text-sm font-medium mb-2" th:text="${label}"></label>
+    <input th:id="${name}"
+           th:name="${name}"
+           th:type="${type}"
+           th:placeholder="${placeholder}"
+           th:value="${value}"
+           th:required="${required}"
+           class="input-field w-full px-3 py-2 rounded focus:ring-2 focus:ring-offset-2"
+           th:classappend="${error ? 'border-red-500' : ''}"
+           style="focus-ring-color: var(--accent);">
+    <p th:if="${error}" class="text-red-500 text-xs mt-1" th:text="${error}"></p>
+  </div>
+</div>
+
+<!-- Table Component -->
+<div th:fragment="table(headers, rows)">
+  <div class="overflow-x-auto">
+    <table class="table w-full">
+      <thead>
+        <tr>
+          <th th:each="header : ${headers}" th:text="${header}"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="row : ${rows}">
+          <td th:each="cell : ${row}" th:text="${cell}"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Alert Component -->
+<div th:fragment="alert(message, type='info')">
+  <div th:class="${'alert alert-' + type}">
+    <span th:text="${message}"></span>
+  </div>
+</div>
+
+<!-- Spinner Component -->
+<div th:fragment="spinner" class="inline-block">
+  <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+</div>
+
+<!-- Modal Component -->
+<div th:fragment="modal(id, title, content, footer)" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" th:id="${id}">
+  <div class="card w-full max-w-md">
+    <div class="card-header flex items-center justify-between pb-4">
+      <h2 class="text-lg font-semibold" th:text="${title}"></h2>
+      <button onclick="document.getElementById(this.getAttribute('data-modal')).classList.add('hidden')" th:data-modal="${id}" class="text-gray-500 hover:text-gray-700">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="p-6" th:replace="${content}"></div>
+    <div class="border-t p-4" style="border-color: var(--border-color);" th:replace="${footer}"></div>
+  </div>
+</div>
+
+<!-- Empty State Component -->
+<div th:fragment="emptyState(icon, title, description)" class="text-center py-12">
+  <svg class="w-12 h-12 mx-auto mb-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    [[${icon}]]
+  </svg>
+  <h3 class="text-lg font-medium mb-2" th:text="${title}"></h3>
+  <p style="color: var(--text-muted);" th:text="${description}"></p>
+</div>
+
+<!-- Status Badge Component -->
+<span th:fragment="statusBadge(status)">
+  <span th:if="${status == 'active'}" class="badge badge-success">Active</span>
+  <span th:if="${status == 'disabled'}" class="badge badge-danger">Disabled</span>
+  <span th:if="${status == 'pending'}" class="badge badge-info">Pending</span>
+</span>

@@ -17,5 +17,10 @@ public class AppUser {
     @Column(nullable = false)
     private String password;
 
+    private String name;
+
+    @Column(unique = true)
+    private String email;
+
     private String roles; // Comma-separated roles, e.g., "ADMIN"
 }

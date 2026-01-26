@@ -16,6 +16,8 @@ services:
       - spring.data.redis.host=${REDIS_HOST}
       - spring.data.redis.port=${REDIS_PORT}
       - spring.data.redis.password=${REDIS_PASSWORD}
+      - app.timezone=Asia/Kuala_Lumpur
+      - spring.jackson.time-zone=Asia/Kuala_Lumpur
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9090/"]
       interval: 30s

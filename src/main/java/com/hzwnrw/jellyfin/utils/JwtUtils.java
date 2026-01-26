@@ -49,13 +49,13 @@ public class JwtUtils {
     public boolean validateToken(String token) {
         try {
             parseClaims(token);
-            log.info("Validating token: {}, length: {}", token.substring(0, 20) + "...", token.length());
+            log.debug("Validating token: {}, length: {}", token.substring(0, 20) + "...", token.length());
             // Check if token is blacklisted
             if (tokenBlacklistService.isTokenBlacklisted(token)) {
                 log.warn("JWT token is blacklisted, rejecting: {}", token.substring(0, 20) + "...");
                 return false;
             }
-            log.info("Token validation successful, not blacklisted");
+            log.debug("Token validation successful, not blacklisted");
             return true;
         } catch (ExpiredJwtException e) {
             log.error("JWT token is expired: {}", e.getMessage());
