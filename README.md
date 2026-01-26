@@ -1,7 +1,6 @@
 # Jellyfin User Manager
 
 A Spring Boot application for managing Jellyfin user accounts with automatic expiration scheduling.
->⚠️ This app has no authentication and is intended for trusted local Docker use only. Do not expose it publicly.
 ## Features
 
 - **User Management**: View all Jellyfin users in a web interface
