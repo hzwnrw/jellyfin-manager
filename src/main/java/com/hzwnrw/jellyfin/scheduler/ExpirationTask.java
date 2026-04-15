@@ -4,10 +4,13 @@ import com.hzwnrw.jellyfin.repository.ExpirationRepository;
 import com.hzwnrw.jellyfin.service.JellyfinService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import java.time.ZonedDateTime;
+
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -17,21 +20,35 @@ public class ExpirationTask {
     private final ExpirationRepository repository;
     private final JellyfinService jellyfinService;
 
-    @Scheduled(cron = "0 0 0 * * *") // Run every day at midnight UTC
+    @Value("${app.timezone:Asia/Kuala_Lumpur}")
+    private String appTimezone;
+
+    @Scheduled(cron = "0 0 0 * * *", zone = "${app.timezone:Asia/Kuala_Lumpur}")
     public void checkExpirations() {
-        var pending = repository.findByProcessedFalse();
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")); // Always check in UTC
+        ZoneId appZone = ZoneId.of(appTimezone);
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        ZonedDateTime nowLocal = nowUtc.withZoneSameInstant(appZone);
+        List<com.hzwnrw.jellyfin.model.UserExpiration> pending =
+                repository.findByProcessedFalseAndExpiryDateLessThanEqual(nowUtc);
+
+        if (pending.isEmpty()) {
+            log.debug("No expirations due at local midnight {} ({})", nowLocal, appTimezone);
+            return;
+        }
 
         for (var entry : pending) {
-            log.debug("Checking expiration for user: {} | Expiry: {} | Now: {}", 
-                entry.getUsername(), entry.getExpiryDate(), now);
-            
-            if (now.isAfter(entry.getExpiryDate()) || now.isEqual(entry.getExpiryDate())) {
-                log.info("User {} has expired. Disabling account.", entry.getUsername());
-                jellyfinService.updateDisableStatus(entry.getJellyfinUserId(), true);
-                entry.setProcessed(true);
-                repository.save(entry);
-            }
+            ZonedDateTime expiryLocal = entry.getExpiryDate().withZoneSameInstant(appZone);
+            log.info(
+                    "User {} has expired. Disabling account. Expiry UTC: {} | Expiry {}: {} | Checked UTC: {}",
+                    entry.getUsername(),
+                    entry.getExpiryDate(),
+                    appTimezone,
+                    expiryLocal,
+                    nowUtc
+            );
+            jellyfinService.updateDisableStatus(entry.getJellyfinUserId(), true);
+            entry.setProcessed(true);
+            repository.save(entry);
         }
     }
 }
