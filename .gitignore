@@ -50,3 +50,6 @@ Thumbs.db
 .env
 .env.local
 application-local.properties
+
+# Frontend
+node_modules/
