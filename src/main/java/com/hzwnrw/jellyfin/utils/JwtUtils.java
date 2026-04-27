@@ -1,12 +1,15 @@
 package com.hzwnrw.jellyfin.utils;
 
 import com.hzwnrw.jellyfin.service.TokenBlacklistService;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,7 +29,6 @@ public class JwtUtils {
     private final TokenBlacklistService tokenBlacklistService;
 
     // Inject from application.properties or environment variables
-    @Autowired
     public JwtUtils(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration:86400000}") long expirationTime,
@@ -72,8 +74,7 @@ public class JwtUtils {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = parseClaims(token);
-        String username = claims.getSubject();
+        String username = parseClaims(token).getSubject();
 
         User principal = new User(username, "", new ArrayList<>());
         return new UsernamePasswordAuthenticationToken(principal, token, new ArrayList<>());

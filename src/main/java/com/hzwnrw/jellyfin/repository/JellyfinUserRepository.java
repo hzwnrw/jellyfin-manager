@@ -4,10 +4,12 @@ import com.hzwnrw.jellyfin.model.JellyfinUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.lang.NonNull;
 
 public interface JellyfinUserRepository extends JpaRepository<JellyfinUser, String> {
     /**
      * Find all users with pagination and sorting support
      */
-    Page<JellyfinUser> findAll(Pageable pageable);
+    @NonNull
+    Page<JellyfinUser> findAll(@NonNull Pageable pageable);
 }

@@ -1,6 +1,5 @@
 package com.hzwnrw.jellyfin.controller;
 
-import com.hzwnrw.jellyfin.service.TokenBlacklistService;
 import com.hzwnrw.jellyfin.utils.JwtUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
