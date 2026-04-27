@@ -38,15 +38,17 @@ class AuthControllerTest {
         Authentication authentication = new UsernamePasswordAuthenticationToken("alice", null);
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(jwtUtils.generateToken("alice")).thenReturn("jwt-token");
+        when(jwtUtils.getExpirationTime()).thenReturn(86400000L);
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"username":"alice","password":"secret"}
                                 """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("jwt-token"))
-                .andExpect(jsonPath("$.type").value("Bearer"));
+                .andExpect(status().isNoContent())
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("jwt_token=jwt-token")))
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")))
+                .andExpect(content().string(""));
     }
 
     @Test

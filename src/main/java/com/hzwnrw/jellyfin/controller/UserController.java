@@ -3,16 +3,12 @@ package com.hzwnrw.jellyfin.controller;
 import com.hzwnrw.jellyfin.model.UserExpiration;
 import com.hzwnrw.jellyfin.repository.ExpirationRepository;
 import com.hzwnrw.jellyfin.service.JellyfinService;
-import com.hzwnrw.jellyfin.service.TokenBlacklistService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +27,6 @@ public class UserController {
 
     private final JellyfinService jellyfinService;
     private final ExpirationRepository repository;
-    private final TokenBlacklistService tokenBlacklistService;
     
     @Value("${app.timezone:Asia/Kuala_Lumpur}")
     private String defaultTimezone;
@@ -141,68 +136,5 @@ public class UserController {
         jellyfinService.syncAndGetAllUsers();
         log.info("Manual sync completed");
         return "redirect:/";
-    }
-
-    @PostMapping("/logout")
-    public String logout(HttpServletRequest request, HttpServletResponse response) {
-        log.warn("===== LOGOUT ENDPOINT CALLED =====");
-
-        String token = null;
-        boolean blacklistSuccess = false;
-
-        // Get the JWT token from cookie (primary source)
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            log.debug("Number of cookies: {}", cookies.length);
-            for (Cookie cookie : cookies) {
-                log.debug("Cookie: {} = {}", cookie.getName(), cookie.getValue() != null ? cookie.getValue().substring(0, Math.min(20, cookie.getValue().length())) + "..." : "null");
-                if ("jwt_token".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    log.warn("JWT token extracted from cookie");
-                    break;
-                }
-            }
-        } else {
-            log.warn("No cookies found in request");
-        }
-
-        // Fallback: Check Authorization header
-        if (token == null) {
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                token = authHeader.substring(7);
-                log.warn("JWT token extracted from Authorization header");
-            }
-        }
-
-        log.warn("Extracted token from request: {}, length: {}", token != null ? token.substring(0, 20) + "..." : "null", token != null ? token.length() : 0);
-
-        // Blacklist the token if present
-        if (token != null) {
-            try {
-                // Blacklist for 1 day (86400 seconds) - match JWT expiration
-                tokenBlacklistService.blacklistToken(token, 86400L);
-                blacklistSuccess = true;
-                log.warn("JWT token blacklisted successfully in Redis");
-            } catch (Exception e) {
-                log.error("Failed to blacklist JWT token: {}", e.getMessage(), e);
-            }
-        } else {
-            log.error("CRITICAL: Token is null or empty, cannot blacklist!");
-        }
-
-        // Clear the security context
-        SecurityContextHolder.clearContext();
-
-        // Clear the JWT cookie - must match the exact attributes used when setting
-        Cookie clearCookie = new Cookie("jwt_token", "");
-        clearCookie.setPath("/");
-        clearCookie.setMaxAge(0);
-        clearCookie.setHttpOnly(false); // Match the client-side cookie setting
-        response.addCookie(clearCookie);
-        log.warn("JWT cookie cleared from response");
-
-        log.warn("===== USER LOGGED OUT: token_extracted={}, blacklisted={} =====", token != null ? "yes" : "no", blacklistSuccess ? "yes" : "no");
-        return "redirect:/login";
     }
 }

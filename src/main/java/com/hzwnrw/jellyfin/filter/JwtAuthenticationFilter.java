@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.debug("Token is valid, checking blacklist status");
             // Check if token is blacklisted
             if (tokenBlacklistService.isTokenBlacklisted(token)) {
-                log.warn("Attempt to use blacklisted token: {}", token.substring(0, Math.min(20, token.length())) + "...");
+                log.warn("Attempt to use blacklisted token");
                 SecurityContextHolder.clearContext();
             } else {
                 log.debug("Token is not blacklisted, setting authentication");

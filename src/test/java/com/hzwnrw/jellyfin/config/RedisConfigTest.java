@@ -69,7 +69,7 @@ class RedisConfigTest {
         RedisCacheConfiguration configuration = cache.getCacheConfiguration();
 
         assertNotNull(configuration);
-        assertEquals(Duration.ofHours(1), configuration.getTtl());
+        assertEquals(Duration.ofHours(1), configuration.getTtlFunction().getTimeToLive("users", "value"));
         assertTrue(configuration.usePrefix());
         assertNotNull(configuration.getKeySerializationPair());
         assertNotNull(configuration.getValueSerializationPair());

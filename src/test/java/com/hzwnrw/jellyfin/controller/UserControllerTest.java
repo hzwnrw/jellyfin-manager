@@ -4,7 +4,6 @@ import com.hzwnrw.jellyfin.model.JellyfinUser;
 import com.hzwnrw.jellyfin.model.UserExpiration;
 import com.hzwnrw.jellyfin.repository.ExpirationRepository;
 import com.hzwnrw.jellyfin.service.JellyfinService;
-import com.hzwnrw.jellyfin.service.TokenBlacklistService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -28,7 +26,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -42,9 +41,6 @@ class UserControllerTest {
 
     @Mock
     private ExpirationRepository repository;
-
-    @Mock
-    private TokenBlacklistService tokenBlacklistService;
 
     @InjectMocks
     private UserController userController;
@@ -150,23 +146,4 @@ class UserControllerTest {
         verify(jellyfinService).syncAndGetAllUsers();
     }
 
-    @Test
-    void logoutBlacklistsCookieTokenClearsSecurityContextAndExpiresCookie() throws Exception {
-        mockMvc.perform(post("/logout").cookie(new jakarta.servlet.http.Cookie("jwt_token", "abcdefghijklmnopqrstuvwxyz")))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(cookie().maxAge("jwt_token", 0));
-
-        verify(tokenBlacklistService).blacklistToken("abcdefghijklmnopqrstuvwxyz", 86400L);
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-    }
-
-    @Test
-    void logoutFallsBackToAuthorizationHeaderWhenCookieMissing() throws Exception {
-        mockMvc.perform(post("/logout").header("Authorization", "Bearer abcdefghijklmnopqrstuvwxyz"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
-
-        verify(tokenBlacklistService).blacklistToken("abcdefghijklmnopqrstuvwxyz", 86400L);
-    }
 }

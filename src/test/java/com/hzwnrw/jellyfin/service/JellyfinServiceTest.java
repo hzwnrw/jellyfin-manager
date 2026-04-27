@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -14,8 +15,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriBuilder;
 
+import java.net.URI;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -23,6 +27,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JellyfinServiceTest {
+
+    private interface RequestHeadersSpecStub extends RestClient.RequestHeadersSpec<RequestHeadersSpecStub> {
+    }
+
+    private interface RequestHeadersUriSpecStub extends RestClient.RequestHeadersUriSpec<RequestHeadersSpecStub> {
+    }
 
     @Mock
     private JellyfinUserRepository jellyfinUserRepository;
@@ -34,10 +44,10 @@ class JellyfinServiceTest {
     private RestClient restClient;
 
     @Mock
-    private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
+    private RequestHeadersUriSpecStub requestHeadersUriSpec;
 
     @Mock
-    private RestClient.RequestHeadersSpec requestHeadersSpec;
+    private RequestHeadersSpecStub requestHeadersSpec;
 
     @Mock
     private RestClient.ResponseSpec responseSpec;
@@ -55,10 +65,11 @@ class JellyfinServiceTest {
         fetchedUser.setId("user-1");
         fetchedUser.setName("Alice");
 
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(any(java.util.function.Function.class))).thenReturn(requestHeadersSpec);
+        doReturn(requestHeadersUriSpec).when(restClient).get();
+        when(requestHeadersUriSpec.uri(org.mockito.ArgumentMatchers.<Function<UriBuilder, URI>>any()))
+                .thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(any(org.springframework.core.ParameterizedTypeReference.class)))
+        when(responseSpec.body(org.mockito.ArgumentMatchers.<ParameterizedTypeReference<List<JellyfinUser>>>any()))
                 .thenReturn(List.of(fetchedUser));
         when(jellyfinUserRepository.findAll()).thenReturn(List.of(fetchedUser));
 
@@ -75,10 +86,11 @@ class JellyfinServiceTest {
         JellyfinUser existingUser = new JellyfinUser();
         existingUser.setId("user-1");
 
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(any(java.util.function.Function.class))).thenReturn(requestHeadersSpec);
+        doReturn(requestHeadersUriSpec).when(restClient).get();
+        when(requestHeadersUriSpec.uri(org.mockito.ArgumentMatchers.<Function<UriBuilder, URI>>any()))
+                .thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(any(org.springframework.core.ParameterizedTypeReference.class)))
+        when(responseSpec.body(org.mockito.ArgumentMatchers.<ParameterizedTypeReference<List<JellyfinUser>>>any()))
                 .thenThrow(new RuntimeException("api failure"));
         when(jellyfinUserRepository.findAll()).thenReturn(List.of(existingUser));
 
@@ -119,7 +131,7 @@ class JellyfinServiceTest {
         user.setId("user-1");
         user.setPolicy(new UserPolicy());
 
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        doReturn(requestHeadersUriSpec).when(restClient).get();
         when(requestHeadersUriSpec.uri("/Users/{id}", "user-1")).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(JellyfinUser.class)).thenReturn(user);
@@ -146,7 +158,7 @@ class JellyfinServiceTest {
         user.setId("user-1");
         user.setPolicy(null);
 
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        doReturn(requestHeadersUriSpec).when(restClient).get();
         when(requestHeadersUriSpec.uri("/Users/{id}", "user-1")).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(JellyfinUser.class)).thenReturn(user);
@@ -162,7 +174,7 @@ class JellyfinServiceTest {
     void updateDisableStatusSwallowsRemoteErrors() {
         JellyfinService jellyfinService = buildService();
 
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        doReturn(requestHeadersUriSpec).when(restClient).get();
         when(requestHeadersUriSpec.uri("/Users/{id}", "user-1")).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(JellyfinUser.class)).thenThrow(new RuntimeException("remote failure"));

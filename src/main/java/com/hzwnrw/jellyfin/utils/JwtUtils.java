@@ -21,7 +21,7 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    private static SecretKey secretKey = null;
+    private final SecretKey secretKey;
     private final long expirationTime;
     private final TokenBlacklistService tokenBlacklistService;
 
@@ -32,7 +32,7 @@ public class JwtUtils {
             @Value("${jwt.expiration:86400000}") long expirationTime,
             TokenBlacklistService tokenBlacklistService) {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
-        secretKey = Keys.hmacShaKeyFor(keyBytes);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.expirationTime = expirationTime;
         this.tokenBlacklistService = tokenBlacklistService;
     }
@@ -49,10 +49,10 @@ public class JwtUtils {
     public boolean validateToken(String token) {
         try {
             parseClaims(token);
-            log.debug("Validating token: {}, length: {}", token.substring(0, 20) + "...", token.length());
+            log.debug("Validating JWT token");
             // Check if token is blacklisted
             if (tokenBlacklistService.isTokenBlacklisted(token)) {
-                log.warn("JWT token is blacklisted, rejecting: {}", token.substring(0, 20) + "...");
+                log.warn("JWT token is blacklisted");
                 return false;
             }
             log.debug("Token validation successful, not blacklisted");
@@ -77,6 +77,16 @@ public class JwtUtils {
 
         User principal = new User(username, "", new ArrayList<>());
         return new UsernamePasswordAuthenticationToken(principal, token, new ArrayList<>());
+    }
+
+    public long getExpirationTime() {
+        return expirationTime;
+    }
+
+    public long getRemainingValiditySeconds(String token) {
+        Claims claims = parseClaims(token);
+        long remainingMillis = claims.getExpiration().getTime() - System.currentTimeMillis();
+        return Math.max(1L, remainingMillis / 1000L);
     }
 
     private Claims parseClaims(String token) {

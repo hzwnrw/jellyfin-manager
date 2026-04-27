@@ -5,17 +5,19 @@ import com.hzwnrw.jellyfin.service.AppUserDetailsService;
 import com.hzwnrw.jellyfin.service.TokenBlacklistService;
 import com.hzwnrw.jellyfin.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -31,6 +33,12 @@ public class SecurityConfig {
     private final AppUserDetailsService appUserDetailsService;
     private final TokenBlacklistService tokenBlacklistService;
 
+    @Value("${app.security.cookie-secure:false}")
+    private boolean secureCookie;
+
+    @Value("${app.security.cookie-same-site:Lax}")
+    private String sameSite;
+
     // 1. Password Encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,8 +48,7 @@ public class SecurityConfig {
     // 2. Explicitly define the Manager to prevent the StackOverflow loop
     @Bean
     public AuthenticationManager authenticationManager(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(appUserDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(appUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
         return new ProviderManager(authProvider);
     }
@@ -71,16 +78,11 @@ public class SecurityConfig {
                 }
             }
 
-            // Blacklist the token
             if (token != null && !token.isEmpty()) {
                 try {
-                    tokenBlacklistService.blacklistToken(token, 86400L);
-                    System.out.println("[LOGOUT HANDLER] Token blacklisted successfully");
-                } catch (Exception e) {
-                    System.out.println("[LOGOUT HANDLER] Failed to blacklist token: " + e.getMessage());
+                    tokenBlacklistService.blacklistToken(token, jwtUtils.getRemainingValiditySeconds(token));
+                } catch (Exception ignored) {
                 }
-            } else {
-                System.out.println("[LOGOUT HANDLER] No token found to blacklist");
             }
         };
     }
@@ -88,8 +90,11 @@ public class SecurityConfig {
     // 3. The Filter Chain
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfTokenRepository.setCookiePath("/");
+
         http
-                .csrf(AbstractHttpConfigurer::disable) // Disabled for local development/APIs
+                .csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -108,8 +113,17 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .addLogoutHandler(jwtLogoutHandler())
-                        .logoutSuccessUrl("/login")
-                        .deleteCookies("jwt_token")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            ResponseCookie clearCookie = ResponseCookie.from("jwt_token", "")
+                                    .httpOnly(true)
+                                    .secure(secureCookie)
+                                    .sameSite(sameSite)
+                                    .path("/")
+                                    .maxAge(0)
+                                    .build();
+                            response.addHeader("Set-Cookie", clearCookie.toString());
+                            response.sendRedirect("/login");
+                        })
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")))
                 .headers(headers -> headers.cacheControl(cache -> cache.disable()))

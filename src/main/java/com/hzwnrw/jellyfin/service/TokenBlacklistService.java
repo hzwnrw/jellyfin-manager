@@ -39,13 +39,13 @@ public class TokenBlacklistService {
             // Verify the token was set
             Boolean exists = redisTemplate.hasKey(redisKey);
             if (exists != null && exists) {
-                log.info("Token blacklisted successfully in Redis with TTL {} seconds: {}", ttlInSeconds, token.substring(0, 20) + "...");
+                log.info("Token blacklisted successfully in Redis with TTL {} seconds", ttlInSeconds);
             } else {
-                log.error("Token set failed, key not found in Redis after set: {}", token.substring(0, 20) + "...");
+                log.error("Token set failed, key not found in Redis after set");
                 throw new RuntimeException("Redis set operation failed verification");
             }
         } catch (Exception e) {
-            log.error("Failed to blacklist token in Redis: {} - Error: {}", token.substring(0, 20) + "...", e.getMessage(), e);
+            log.error("Failed to blacklist token in Redis: {}", e.getMessage(), e);
             throw e; // Re-throw so caller knows it failed
         }
     }
@@ -59,11 +59,11 @@ public class TokenBlacklistService {
             Boolean exists = redisTemplate.hasKey(redisKey);
             boolean blacklisted = exists != null && exists;
             if (blacklisted) {
-                log.warn("Access denied: Token is blacklisted: {}", token.substring(0, 20) + "...");
+                log.warn("Access denied: token is blacklisted");
             }
             return blacklisted;
         } catch (Exception e) {
-            log.error("CRITICAL: Failed to check if token is blacklisted in Redis - denying access for security: {} - Error: {}", token != null ? token.substring(0, Math.min(20, token.length())) + "..." : "null", e.getMessage(), e);
+            log.error("CRITICAL: Failed to check if token is blacklisted in Redis - denying access for security: {}", e.getMessage(), e);
             return true; // Deny access on Redis error for security
         }
     }
