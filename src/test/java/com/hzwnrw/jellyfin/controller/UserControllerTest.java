@@ -91,7 +91,8 @@ class UserControllerTest {
 
     @Test
     void loginPageReturnsLoginView() {
-        assertEquals("login", userController.loginPage());
+        org.springframework.ui.Model model = new org.springframework.ui.ConcurrentModel();
+        assertEquals("login", userController.loginPage(model));
     }
 
     @Test

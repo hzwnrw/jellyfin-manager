@@ -1,0 +1,77 @@
+# =============================================================================
+# Jellyfin Manager — Application Configuration
+# =============================================================================
+# Copy this file to application.yml and fill in your values.
+# application.yml is git-ignored and will NOT be committed.
+# =============================================================================
+
+server:
+  port: 9090
+  # Trust reverse proxy X-Forwarded headers (needed for correct OAuth2 redirect URI)
+  forward-headers-strategy: native
+
+# ── Jellyfin Server ──────────────────────────────────────────────────────────
+jellyfin:
+  url: https://your-jellyfin-server.example.com
+  api-key: your-jellyfin-api-key
+
+# ── Database (MariaDB) ───────────────────────────────────────────────────────
+spring:
+  datasource:
+    url: jdbc:mariadb://your-db-host:3306/jellyfin_manager_db
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: your-db-username
+    password: your-db-password
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    baseline-on-migrate: true
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  data:
+    redis:
+      host: your-redis-host
+      port: 6379
+      password: your-redis-password
+
+  # ── Thymeleaf ──────────────────────────────────────────────────────────────
+  thymeleaf:
+    cache: false  # set to true in production
+
+  # ── Jackson Timezone ───────────────────────────────────────────────────────
+  jackson:
+    time-zone: Asia/Kuala_Lumpur
+
+  # ── OAuth2 (Google) ────────────────────────────────────────────────────────
+  # Get credentials from: https://console.cloud.google.com/apis/credentials
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: your-google-client-id.apps.googleusercontent.com
+            client-secret: your-google-client-secret
+
+  main:
+    allow-bean-definition-overriding: true
+
+# ── App Settings ─────────────────────────────────────────────────────────────
+app:
+  # All times stored in UTC, displayed in this timezone.
+  # Options: Asia/Kuala_Lumpur, Asia/Singapore, Asia/Bangkok, Asia/Tokyo, UTC, etc.
+  timezone: Asia/Kuala_Lumpur
+  version: "@project.version@"
+
+# ── JWT ──────────────────────────────────────────────────────────────────────
+# Generate a secret: openssl rand -base64 64
+jwt:
+  secret: your-base64-encoded-jwt-secret
+
+# ── Logging (optional) ───────────────────────────────────────────────────────
+# logging:
+#   level:
+#     com.hzwnrw.jellyfin: DEBUG
+#     org.springframework.data.redis: DEBUG

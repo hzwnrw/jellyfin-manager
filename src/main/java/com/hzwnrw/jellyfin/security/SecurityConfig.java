@@ -15,7 +15,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.SecurityFilterChain;
@@ -32,6 +31,7 @@ public class SecurityConfig {
     private final JwtUtils jwtUtils;
     private final AppUserDetailsService appUserDetailsService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Value("${app.security.cookie-secure:false}")
     private boolean secureCookie;
@@ -39,13 +39,7 @@ public class SecurityConfig {
     @Value("${app.security.cookie-same-site:Lax}")
     private String sameSite;
 
-    // 1. Password Encoder
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    // 2. Explicitly define the Manager to prevent the StackOverflow loop
+    // 1. Explicitly define the Manager to prevent the StackOverflow loop
     @Bean
     public AuthenticationManager authenticationManager(PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(appUserDetailsService);
@@ -53,7 +47,7 @@ public class SecurityConfig {
         return new ProviderManager(authProvider);
     }
 
-    // 3. Custom logout handler for JWT token blacklisting
+    // 2. Custom logout handler for JWT token blacklisting
     @Bean
     public LogoutHandler jwtLogoutHandler() {
         return (request, response, authentication) -> {
@@ -101,6 +95,7 @@ public class SecurityConfig {
                                 "/login",
                                 "/logout",
                                 "/api/auth/**",
+                                "/oauth2/**",
                                 "/favicon.ico",
                                 "/app.css",
                                 "/css/**",
@@ -109,6 +104,10 @@ public class SecurityConfig {
                                 "/static/**"
                         ).permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")

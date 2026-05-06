@@ -30,12 +30,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         // Skip filter for static resources, public endpoints, and login
         return path.equals("/app.css") ||
-               path.startsWith("/css/") || 
-               path.startsWith("/js/") || 
-               path.startsWith("/static/") || 
+               path.startsWith("/css/") ||
+               path.startsWith("/js/") ||
+               path.startsWith("/static/") ||
                path.startsWith("/images/") ||
                path.startsWith("/favicon") ||
-               path.equals("/login") || 
+               path.startsWith("/oauth2/") ||
+               path.equals("/login") ||
                path.startsWith("/api/auth/");
     }
 

@@ -30,6 +30,9 @@ public class UserController {
     
     @Value("${app.timezone:Asia/Kuala_Lumpur}")
     private String defaultTimezone;
+    
+    @Value("${app.version:1.3.0}")
+    private String appVersion;
 
     @GetMapping("/")
     public String index(Model model, HttpServletResponse response,
@@ -87,8 +90,9 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(Model model) {
         log.info("Serving login page");
+        model.addAttribute("appVersion", "v" + appVersion);
         return "login"; // This matches src/main/resources/templates/login.html
     }
 
